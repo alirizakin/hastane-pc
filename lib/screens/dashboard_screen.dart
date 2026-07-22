@@ -96,19 +96,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _explorerPath(String uncPath) async {
-    // Convert UNC to file:// URI format for Windows
-    // \\server\share\path -> file://///server/share/path
-    final clean = uncPath.replaceAll('\\', '/');
-    final uri = Uri.parse('file://///$clean');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      // Fallback: try with explorer.exe
-      try {
-        await Process.run('explorer', [uncPath]);
-      } catch (_) {
-        _snack('Klasör açılamadı: $uncPath');
-      }
+    // Windows'ta UNC yolunu explorer.exe ile aç
+    try {
+      await Process.run('explorer', [uncPath]);
+    } catch (_) {
+      _snack('Klasör açılamadı: $uncPath');
     }
   }
 
@@ -174,8 +166,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               child: Row(
                 children: [
-                  Image.asset('assets/images/logo.png',
-                      width: 40, height: 40, errorBuilder: (_, __, ___) =>
+                  Image.asset('assets/images/arma_logo.png',
+                      width: 56, height: 56, errorBuilder: (_, __, ___) =>
                       const Icon(Icons.local_hospital, color: Colors.white, size: 36)),
                   const SizedBox(width: 14),
                   const Column(
@@ -265,8 +257,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 18),
           // Logo alt kısım
           Center(
-            child: Image.asset('assets/images/logo.png',
-                width: 64, height: 64, errorBuilder: (_, __, ___) =>
+            child: Image.asset('assets/images/arma_logo.png',
+                width: 80, height: 80, errorBuilder: (_, __, ___) =>
                 const SizedBox.shrink()),
           ),
         ],
