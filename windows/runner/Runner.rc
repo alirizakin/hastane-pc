@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "Isparta Şehir Hastanesi" "\0"
-            VALUE "FileDescription", "Isparta Şehir Hastanesi Windows Uygulaması" "\0"
+            VALUE "FileDescription", "ISH Asistan" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "hastane_pc" "\0"
+            VALUE "InternalName", "ISH_Asistan" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 Isparta Şehir Hastanesi. Tüm hakları saklıdır." "\0"
-            VALUE "OriginalFilename", "hastane_pc.exe" "\0"
-            VALUE "ProductName", "Isparta Şehir Hastanesi" "\0"
+            VALUE "OriginalFilename", "ISH_Asistan.exe" "\0"
+            VALUE "ProductName", "ISH Asistan" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

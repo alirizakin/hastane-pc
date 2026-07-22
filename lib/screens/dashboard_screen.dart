@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
@@ -11,6 +13,15 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  // === Renkler ===
+  static const _kirmizi = Color(0xFFD32F2F);
+  static const _turkuaz = Color(0xFF00BFA5);
+  static const _koyuKirmizi = Color(0xFFB71C1C);
+  static const _acikKirmiziBg = Color(0xFFFFF5F5);
+  static const _griButton = Color(0xFFF5F5F5);
+  static const _griBorder = Color(0xFFE0E0E0);
+  static const _yaziKoyu = Color(0xFF212121);
+
   // === Yemek Listesi ===
   static const String _jsonUrl =
       'https://raw.githubusercontent.com/alirizakin/hastane-uygulama/main/data/menu.json';
@@ -73,60 +84,123 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return days[weekday - 1];
   }
 
-  // === Buton placeholder ===
-  void _onButtonTap(String label) {
+  // === Link Açma İşlemleri ===
+
+  Future<void> _chromeLink(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      _snack('Tarayıcı açılamadı: $url');
+    }
+  }
+
+  Future<void> _explorerPath(String uncPath) async {
+    // Convert UNC to file:// URI format for Windows
+    // \\server\share\path -> file://///server/share/path
+    final clean = uncPath.replaceAll('\\', '/');
+    final uri = Uri.parse('file://///$clean');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      // Fallback: try with explorer.exe
+      try {
+        await Process.run('explorer', [uncPath]);
+      } catch (_) {
+        _snack('Klasör açılamadı: $uncPath');
+      }
+    }
+  }
+
+  void _snack(String msg) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('"$label" butonu — link ve işlev henüz eklenmedi.'),
-        backgroundColor: const Color(0xFF1565C0),
-        duration: const Duration(seconds: 2),
+        content: Text(msg),
+        backgroundColor: _kirmizi,
+        duration: const Duration(seconds: 3),
       ),
     );
   }
 
+  void _onCalisanGorus() => _chromeLink(
+      'https://ispartasehir.saglik.gov.tr/Form-TR/4326/calisan-gorus-ve-oneri-formu.html');
+
+  void _onRandevu() => _chromeLink(
+      'https://ispartasehir.saglik.gov.tr/Form-TR/4900/calisan-personeller-icin-yonetimden-randevu-alma.html');
+
+  void _onNobet() => _explorerPath(
+      r'\\ishfp01\Deploy\DesktopForHBYS\KALİTE DÖKÜMAN\NÖBET LİSTELERİ');
+
+  void _onKlinik() => _explorerPath(
+      r'\\ishfp01\Deploy\DesktopForHBYS\KALİTE DÖKÜMAN\Klinik Rehber ve Protokoller');
+
+  void _onHbys() =>
+      _explorerPath(r'\\ishfp01\Deploy\DesktopForHBYS');
+
+  void _onAkgun() => _chromeLink('https://hbys.ish.local/hbys-web/');
+
+  void _onDys() => _chromeLink('https://dys.saglik.gov.tr/');
+
+  void _onSbPosta() =>
+      _chromeLink('https://eposta.saglik.gov.tr/owakontrol/');
+
   @override
   Widget build(BuildContext context) {
     final screenW = MediaQuery.of(context).size.width;
-    final isWide = screenW > 800;
+    final isWide = screenW > 700;
     final dateLabel =
         '${_menuDay.day.toString().padLeft(2, '0')}.${_menuDay.month.toString().padLeft(2, '0')}.${_menuDay.year} ${_turkishDayName(_menuDay.weekday)}';
     final menu = _todayMenu;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFFAFAFA),
       body: SafeArea(
         child: Column(
           children: [
             // === ÜST BAŞLIK ===
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
               decoration: const BoxDecoration(
-                color: Color(0xFF1565C0),
+                gradient: LinearGradient(
+                  colors: [_koyuKirmizi, _kirmizi],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 boxShadow: [
-                  BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 3)),
+                  BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 3)),
                 ],
               ),
-              child: Column(
+              child: Row(
                 children: [
-                  const Text(
-                    'ISPARTA ŞEHİR HASTANESİ',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'ASİSTAN',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.92),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 4,
-                    ),
+                  Image.asset('assets/images/logo.png',
+                      width: 40, height: 40, errorBuilder: (_, __, ___) =>
+                      const Icon(Icons.local_hospital, color: Colors.white, size: 36)),
+                  const SizedBox(width: 14),
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'ISPARTA ŞEHİR HASTANESİ',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.1,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'ASİSTAN',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 5,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -138,15 +212,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ? Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Expanded(child: _buildLeftColumn()),
-                        const VerticalDivider(width: 1, color: Color(0xFFBDBDBD)),
+                        SizedBox(
+                          width: 340,
+                          child: _buildLeftColumn(),
+                        ),
+                        Container(width: 1, color: _griBorder),
                         Expanded(child: _buildRightColumn(dateLabel, menu)),
                       ],
                     )
                   : ListView(
                       children: [
                         _buildLeftColumn(),
-                        const Divider(height: 1, color: Color(0xFFBDBDBD)),
+                        const Divider(height: 1, color: _griBorder),
                         _buildRightColumn(dateLabel, menu),
                       ],
                     ),
@@ -160,28 +237,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // === SOL KOLON ===
   Widget _buildLeftColumn() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildSection(
             'Personel İşlemleri',
             [
-              _MenuItem('Çalışan Görüş ve Öneri Formu', Icons.feedback_outlined),
-              _MenuItem('Çalışan Personeller İçin\nYönetimden Randevu Alma Formu', Icons.calendar_today_outlined),
+              _MenuItem('Çalışan Görüş ve Öneri Formu',
+                  Icons.feedback_outlined, _onCalisanGorus),
+              _MenuItem('Çalışan Personeller İçin\nYönetimden Randevu Alma',
+                  Icons.calendar_today_outlined, _onRandevu),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 18),
           _buildSection(
             'Kısayol',
             [
-              _MenuItem('Nöbet Listeleri', Icons.list_alt_rounded),
-              _MenuItem('Klinik Rehber ve\nProtokoller', Icons.menu_book_rounded),
-              _MenuItem('Hbys Dosyalar', Icons.folder_outlined),
-              _MenuItem('Akgün HBYS', Icons.computer_rounded),
-              _MenuItem('DYS', Icons.description_outlined),
-              _MenuItem('SB POSTA', Icons.mail_outline_rounded),
+              _MenuItem('Nöbet Listeleri', Icons.list_alt_rounded, _onNobet),
+              _MenuItem('Klinik Rehber ve\nProtokoller', Icons.menu_book_rounded, _onKlinik),
+              _MenuItem('Hbys Dosyalar', Icons.folder_outlined, _onHbys),
+              _MenuItem('Akgün HBYS', Icons.computer_rounded, _onAkgun),
+              _MenuItem('DYS', Icons.description_outlined, _onDys),
+              _MenuItem('SB POSTA', Icons.mail_outline_rounded, _onSbPosta),
             ],
+          ),
+          const SizedBox(height: 18),
+          // Logo alt kısım
+          Center(
+            child: Image.asset('assets/images/logo.png',
+                width: 64, height: 64, errorBuilder: (_, __, ___) =>
+                const SizedBox.shrink()),
           ),
         ],
       ),
@@ -189,65 +275,88 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildSection(String title, List<_MenuItem> items) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
-          decoration: BoxDecoration(
-            color: const Color(0xFFE3F2FD),
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: const Color(0xFFBBDEFB)),
-          ),
-          child: Text(
-            title,
-            style: const TextStyle(
-              color: Color(0xFF1565C0),
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: _griBorder),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6, offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 14),
+            decoration: const BoxDecoration(
+              color: _kirmizi,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(9),
+                topRight: Radius.circular(9),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 4, height: 18,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: const Color(0xFFE0E0E0)),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Column(
-            children: items
-                .map((item) => _buildMenuItemButton(item))
-                .toList(),
-          ),
-        ),
-      ],
+          // Section items
+          ...items.map((item) => _buildMenuItemButton(item)).toList(),
+        ],
+      ),
     );
   }
 
   Widget _buildMenuItemButton(_MenuItem item) {
     return InkWell(
-      onTap: () => _onButtonTap(item.label.replaceAll('\n', ' ')),
+      onTap: item.onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE))),
+        padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: _griBorder.withOpacity(0.5))),
         ),
         child: Row(
           children: [
-            Icon(item.icon, size: 20, color: const Color(0xFF616161)),
+            Container(
+              width: 34, height: 34,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFBE9E7),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(item.icon, size: 18, color: _kirmizi),
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 item.label,
                 style: const TextStyle(
-                  color: Color(0xFF212121),
-                  fontSize: 14,
+                  color: _yaziKoyu,
+                  fontSize: 13,
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ),
-            const Icon(Icons.chevron_right, size: 20, color: Color(0xFF9E9E9E)),
+            Icon(Icons.chevron_right, size: 18, color: Colors.grey.shade400),
           ],
         ),
       ),
@@ -257,31 +366,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // === SAĞ KOLON ===
   Widget _buildRightColumn(String dateLabel, _MealItems? menu) {
     return Container(
-      margin: const EdgeInsets.all(20),
+      margin: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.black, width: 1.5),
-        borderRadius: BorderRadius.circular(8),
+        color: Colors.white,
+        border: Border.all(color: _griBorder),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2)),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Yemek Listesi başlık
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-            decoration: const BoxDecoration(
-              color: Color(0xFFE3F2FD),
-              border: Border(bottom: BorderSide(color: Color(0xFFBDBDBD))),
+            padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 16),
+            decoration: BoxDecoration(
+              color: _kirmizi.withOpacity(0.08),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(11),
+                topRight: Radius.circular(11),
+              ),
+              border: Border(bottom: BorderSide(color: _griBorder)),
             ),
             child: Row(
               children: [
                 const Icon(Icons.restaurant_menu_rounded,
-                    color: Color(0xFF1565C0), size: 22),
+                    color: _kirmizi, size: 22),
                 const SizedBox(width: 10),
                 const Text(
                   'YEMEK LİSTESİ',
                   style: TextStyle(
-                    color: Color(0xFF1565C0),
-                    fontSize: 16,
+                    color: _koyuKirmizi,
+                    fontSize: 15,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -290,7 +407,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   dateLabel,
                   style: TextStyle(
                     color: Colors.grey.shade600,
-                    fontSize: 13,
+                    fontSize: 12,
                   ),
                 ),
               ],
@@ -300,7 +417,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           // Yemek içeriği
           Expanded(
             child: _menuLoading
-                ? const Center(child: CircularProgressIndicator(color: Color(0xFF1565C0)))
+                ? const Center(child: CircularProgressIndicator(color: _kirmizi))
                 : _menuError != null
                     ? Center(
                         child: Padding(
@@ -308,9 +425,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.error_outline, size: 48, color: Colors.grey),
+                              const Icon(Icons.cloud_off_rounded, size: 48, color: Colors.grey),
                               const SizedBox(height: 12),
-                              Text('Menü yüklenemedi', style: TextStyle(color: Colors.grey.shade600)),
+                              Text('Menü yüklenemedi',
+                                  style: TextStyle(color: Colors.grey.shade600, fontSize: 14)),
                               const SizedBox(height: 8),
                               OutlinedButton.icon(
                                 onPressed: _loadMenus,
@@ -325,16 +443,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ? Center(
                             child: Text(
                               'Bugün için menü bulunamadı',
-                              style: TextStyle(color: Colors.grey.shade500, fontSize: 15),
+                              style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
                             ),
                           )
                         : ListView(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                             children: [
                               _buildMealRow('Sabah', Icons.free_breakfast_rounded, menu.breakfast),
-                              const Divider(height: 24),
+                              const Divider(height: 20, color: _griBorder),
                               _buildMealRow('Öğle', Icons.lunch_dining_rounded, menu.lunch),
-                              const Divider(height: 24),
+                              const Divider(height: 20, color: _griBorder),
                               _buildMealRow('Akşam', Icons.dinner_dining_rounded, menu.dinner),
                             ],
                           ),
@@ -342,31 +460,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
           // Alt navigasyon
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: Color(0xFFE0E0E0))),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAFAFA),
+              border: Border(top: BorderSide(color: _griBorder)),
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(11),
+                bottomRight: Radius.circular(11),
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 TextButton.icon(
-                  onPressed: () {
-                    setState(() => _menuDay = _menuDay.subtract(const Duration(days: 1)));
-                  },
-                  icon: const Icon(Icons.chevron_left, size: 20),
-                  label: const Text('Önceki', style: TextStyle(fontSize: 13)),
+                  onPressed: () => setState(() => _menuDay = _menuDay.subtract(const Duration(days: 1))),
+                  icon: const Icon(Icons.chevron_left, size: 20, color: _kirmizi),
+                  label: const Text('Önceki', style: TextStyle(fontSize: 12, color: _kirmizi)),
                 ),
                 TextButton.icon(
                   onPressed: _loadMenus,
-                  icon: const Icon(Icons.refresh, size: 18),
-                  label: const Text('Yenile', style: TextStyle(fontSize: 13)),
+                  icon: const Icon(Icons.refresh, size: 18, color: _turkuaz),
+                  label: const Text('Yenile', style: TextStyle(fontSize: 12, color: _turkuaz)),
                 ),
                 TextButton.icon(
-                  onPressed: () {
-                    setState(() => _menuDay = _menuDay.add(const Duration(days: 1)));
-                  },
-                  icon: const Icon(Icons.chevron_right, size: 20),
-                  label: const Text('Sonraki', style: TextStyle(fontSize: 13)),
+                  onPressed: () => setState(() => _menuDay = _menuDay.add(const Duration(days: 1))),
+                  icon: const Icon(Icons.chevron_right, size: 20, color: _kirmizi),
+                  label: const Text('Sonraki', style: TextStyle(fontSize: 12, color: _kirmizi)),
                 ),
               ],
             ),
@@ -381,45 +500,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 42,
-          height: 42,
+          width: 38, height: 38,
           decoration: BoxDecoration(
-            color: const Color(0xFF1565C0),
+            gradient: const LinearGradient(colors: [_kirmizi, _koyuKirmizi]),
             borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(color: _kirmizi.withOpacity(0.3), blurRadius: 6, offset: const Offset(0, 2)),
+            ],
           ),
-          child: Icon(icon, color: Colors.white, size: 22),
+          child: Icon(icon, color: Colors.white, size: 20),
         ),
-        const SizedBox(width: 14),
+        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(title,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF212121),
+                    color: _yaziKoyu,
                   )),
               const SizedBox(height: 6),
               if (items.isEmpty)
                 Text('Veri yok',
-                    style: TextStyle(color: Colors.grey.shade400, fontSize: 14))
+                    style: TextStyle(color: Colors.grey.shade400, fontSize: 13))
               else
                 ...items.map((item) => Padding(
-                      padding: const EdgeInsets.only(bottom: 3),
+                      padding: const EdgeInsets.only(bottom: 2),
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
-                            width: 5,
-                            height: 5,
+                            margin: const EdgeInsets.only(top: 6),
+                            width: 5, height: 5,
                             decoration: const BoxDecoration(
-                              color: Color(0xFF1565C0),
+                              color: _kirmizi,
                               shape: BoxShape.circle,
                             ),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: Text(item, style: const TextStyle(fontSize: 14, height: 1.3)),
+                            child: Text(item,
+                                style: const TextStyle(fontSize: 13, height: 1.35, color: Color(0xFF424242))),
                           ),
                         ],
                       ),
@@ -441,5 +564,6 @@ class _MealItems {
 class _MenuItem {
   final String label;
   final IconData icon;
-  _MenuItem(this.label, this.icon);
+  final VoidCallback onTap;
+  _MenuItem(this.label, this.icon, this.onTap);
 }
