@@ -164,35 +164,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 3)),
                 ],
               ),
-              child: Row(
+              child: Stack(
                 children: [
-                  Image.asset('assets/images/arma_logo.jpg',
-                      width: 56, height: 56, errorBuilder: (_, __, ___) =>
-                      const Icon(Icons.local_hospital, color: Colors.white, size: 36)),
-                  const SizedBox(width: 14),
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
                     children: [
-                      Text(
-                        'ISPARTA ŞEHİR HASTANESİ',
-                        style: TextStyle(
+                      Image.asset('assets/images/ARMA LOGO beyaz.png',
+                          width: 52, height: 52,
                           color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.1,
-                        ),
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        'ASİSTAN',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 5,
-                        ),
+                          errorBuilder: (_, __, ___) =>
+                          const Icon(Icons.local_hospital, color: Colors.white, size: 36)),
+                      const SizedBox(width: 14),
+                      const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'ISPARTA ŞEHİR HASTANESİ',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.1,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'ASİSTAN',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 5,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
+                  ),
+                  Positioned(
+                    bottom: -8,
+                    right: 0,
+                    child: Image.asset('assets/images/copy.png',
+                        width: 80, height: 16,
+                        color: Colors.white70,
+                        errorBuilder: (_, __, ___) => const SizedBox.shrink()),
                   ),
                 ],
               ),
