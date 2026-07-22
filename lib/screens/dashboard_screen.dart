@@ -166,7 +166,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               child: Row(
                 children: [
-                  Image.asset('assets/images/arma_logo.png',
+                  Image.asset('assets/images/arma_logo.jpg',
                       width: 56, height: 56, errorBuilder: (_, __, ___) =>
                       const Icon(Icons.local_hospital, color: Colors.white, size: 36)),
                   const SizedBox(width: 14),
@@ -257,7 +257,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 18),
           // Logo alt kısım
           Center(
-            child: Image.asset('assets/images/arma_logo.png',
+            child: Image.asset('assets/images/arma_logo.jpg',
                 width: 80, height: 80, errorBuilder: (_, __, ___) =>
                 const SizedBox.shrink()),
           ),
